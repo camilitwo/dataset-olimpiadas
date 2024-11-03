@@ -1,18 +1,18 @@
 # Olympics-Dataset
 
-This repo contains a comprehensive dataset on summer & winter Olympic athletes & their results between 1896-2022 (will be updated with 2024 results after the upcoming Paris Games)
+Este repositorio contiene un conjunto de datos completo sobre los atletas olímpicos de verano e invierno y sus resultados entre 1896 y 2022 (se actualizará con los resultados de 2024 después de los próximos Juegos de París)
 
 ![Olympic Flame](./assets/olympic_flame.jpeg)
 
-## Dataset info & collection process
+## Información del conjunto de datos y proceso de recopilación
 
-This data comes from [olympedia.org](https://www.olympedia.org/) and was web scraped with the Python Beautiful Soup library (see [scrape_data.py](./scrape_data.py))
+Estos datos provienen de [olympedia.org](https://www.olympedia.org/) y se extrajeron de la web con la biblioteca Python Beautiful Soup (consulte [scrape_data.py](./scrape_data.py))
 
-- [athletes/bios.csv](./athletes/bios.csv) contains the raw biographical information on each athlete<br/>
-- [results/results.csv](./results/results.csv) contains a row-by-row breakdown of each event athletes competed in and their results in that event.
+- [athletes/bios.csv](./athletes/bios.csv) contiene la información biográfica sin procesar de cada atleta<br/>
+- [results/results.csv](./results/results.csv) contiene un desglose fila por fila de cada evento en el que compitieron los atletas y sus resultados En ese caso.
 
-Note, in the process of scraping this dataset, temporary CSV files were created to checkpoint scraping progress. For simplicity these checkpointed files have since been removed from the repository.
+Tenga en cuenta que, en el proceso de extracción de este conjunto de datos, se crearon archivos CSV temporales para controlar el progreso de la extracción. Para simplificar, estos archivos con puntos de control se eliminaron del repositorio.
 
-## Clean Data
+## Datos limpios
 
-Easier to analyze data can be found in [clean-data/](./clean-data/) folder. In addition to the results and bios info, you can find data files with additional lat/long location data for athletes, NOC region codes, and historic populations of countries over time.
+Se pueden encontrar datos más fáciles de analizar en la carpeta [clean-data/](./clean-data/). Además de los resultados y la información de las biografías, puede encontrar archivos de datos con datos adicionales de ubicación de latitud y longitud de los atletas, códigos de región de los CON y poblaciones históricas de los países a lo largo del tiempo.
