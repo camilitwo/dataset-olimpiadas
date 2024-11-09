@@ -1,0 +1,1 @@
+# Acumular toda la info necesaria distinta a olimpiadas
