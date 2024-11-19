@@ -10,3 +10,4 @@ jupyter
 geopy
 folium
 matplotlib
+psycopg2-binary
