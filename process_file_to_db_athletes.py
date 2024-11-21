@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 import pandas as pd
 import psycopg2
@@ -64,7 +65,7 @@ def insert_data_year(conn, columns, data):
     Inserta datos en la tabla especificada.
     """
     columns_sql = ", ".join(columns)
-    query = f"INSERT INTO atleta ({columns_sql}) VALUES %s"
+    query = f"INSERT INTO JUGADOR ({columns_sql}) VALUES %s"
     values = [[data[col] for col in columns]]
     try:
         with conn.cursor() as cur:
@@ -258,47 +259,66 @@ def process_players(data, country_map):
 
 # Procesar otros datos (puedes añadir más funciones aquí)
 
+def process_atletas(data):
+    def map_atleta(row):
+        try:
+            birth_year = datetime.strptime(row["birth_date"], "%Y-%m-%d").year if row.get("birth_date") else None
+            return {
+                "id": str(uuid.uuid4()),
+                "nombre": row.get("name"),
+                "pais": row.get("country"),
+                "edad": calculate_age(row.get("birth_date")) if row.get("birth_date") else "",
+                "ranking_mundial": None,  # No está en el CSV
+                "altura": row.get("height"),
+                "peso": row.get("weight"),
+                "hometown": None,  # No está en el CSV
+                "turned_pro": None,  # No está en el CSV
+                "ano": None
+            }
+        except Exception as e:
+            print(f"Error al mapear atleta: {e}")
+
+    atletas = []
+    for index, row in data.iterrows():  # Iteración correcta para DataFrame
+        atletas.append(map_atleta(row))
+    return atletas
+
+def calculate_age(birth_date):
+    birth_date = datetime.strptime(birth_date, "%Y-%m-%d")
+    today = datetime.now()
+    return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+
+def process_poblacion(data):
+    rows = []
+    for _, row in data.iterrows():
+        country_name = row["Country Name"]
+        country_code = row["Country Code"]
+        for year in range(1960, 2024):  # Años del CSV
+            population = row[str(year)]
+            if pd.notna(population):  # Ignorar valores nulos
+                rows.append({
+                    "id": str(uuid.uuid4()),
+                    "pais": country_name,
+                    "ano": year,
+                    "poblacion": population
+                })
+    return rows
+
 # Flujo principal
 def main():
     try:
         conn = psycopg2.connect(**DB_CONFIG)
 
         # Cargar datos desde los archivos proporcionados
-        fifa_countries = pd.read_csv("datos_a_procesar/kaggle_fifa_countries.csv", sep=";")
-        libertadores_results = pd.read_csv("datos_a_procesar/libertadores-results-ds.csv", sep=",")
-        player_data = pd.read_csv("datos_a_procesar/player_data_all_years.csv")
-        results_data = pd.read_csv("datos_a_procesar/results.csv", sep=",")
+        data = pd.read_csv("clean-data/populations.csv", sep=",")
+        data_2 = pd.read_csv("clean-data/athletes new.csv", sep=",")
 
-        # 1. Procesar regiones
-        regions, region_map = process_regions(fifa_countries)
-        insert_data(conn, "Region", regions, ["id", "nombre", "continente"])
+        data_atlhetes = process_atletas(data_2)
+        insert_data(conn, "atleta", data_atlhetes, ["id", "nombre", "pais", "edad", "ranking_mundial", "altura", "peso", "hometown", "turned_pro", "ano"])
 
-        # 2. Procesar países
-        country_continent_map = {country: get_continent(country) for country in fifa_countries["name"].unique()}
-
-        # Procesar países
-        countries, country_map = process_countries(fifa_countries, country_continent_map, region_map)
-        insert_data(conn, "Pais", countries, ["id", "nombre", "codigo", "logo_url", "region_id"])
-
-        # 3. Procesar categorías y disciplinas
-        categories, disciplines = process_categories_and_disciplines(results_data)
-        insert_data(conn, "Categoria_Disciplina", categories, ["id", "nombre"])
-        insert_data(conn, "Disciplina", disciplines, ["id", "nombre", "tipo", "categoria_id"])
-
-        # 4. Procesar estadios
-        #stadiums, stadium_map = process_stadiums(results_data)
-        #insert_data(conn, "Estadio", stadiums, ["id", "nombre", "ubicacion", "capacidad"])
-
-        # 5. Procesar competiciones
-        competitions, competition_map = process_competitions(results_data)
-        insert_data(conn, "Competicion", competitions, ["id", "nombre", "tipo"])
-
-        # 6. Procesar jugadores
-        for player in process_players(player_data, country_map):
-            try:
-                insert_data_year(conn, ["id", "nombre", "pais", "edad", "ranking_mundial", "altura", "peso", "hometown", "turned_pro", "ano"], player)
-            except Exception as e:
-                print(f"Error al insertar jugador: {e}")
+        columns = ["id", "pais", "ano", "poblacion"]
+        processed_population = process_poblacion(data)
+        insert_data(conn, "poblacion", processed_population, columns)
 
         print("ETL completado exitosamente.")
     except Exception as e:
