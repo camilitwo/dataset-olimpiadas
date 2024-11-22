@@ -44,10 +44,10 @@ updates = [(row['gender'], row['atleta']) for _, row in merged_df.iterrows()]
 
 # Actualización masiva con execute_values
 update_sql = """
-    UPDATE HechosDeportivos
+    UPDATE hechosdeportivos
     SET genero = data.genero
     FROM (VALUES %s) AS data(genero, atleta)
-    WHERE upper(HechosDeportivos.atleta) = data.atleta;
+    WHERE upper(hechosdeportivos.atleta) = data.atleta;
 """
 
 try:
